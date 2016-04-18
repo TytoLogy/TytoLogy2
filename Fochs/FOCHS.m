@@ -159,7 +159,10 @@ function popupTDT_Callback(hObject, eventdata, handles)
         case 'RX8_50K'
             str = 'RX8 selected. Sampling rate: 50 kHz';
 %            handles.WithoutTDT = 0; 
-        end
+        case 'RZ6 + RZ5D'
+            str = 'RZ6 + RZ5D selected. Input: 50 kHz';
+%            handles.WithoutTDT = 0; 
+    end
     % display message
     set(handles.textMessage, 'String', str);
     % update handles.h2.config according to the selected TDT hardware
@@ -1779,7 +1782,7 @@ function radioCurveStim_SelectionChangeFcn(hObject, eventdata, handles)
         case 'radioCurveStimTone'
             handles.h2.curve.stimtype = 'TONE'; 
             str = '** curves module: tone selected';
-        end
+    end
     % save handles structure
     guidata(hObject, handles);
     % display message
@@ -1913,7 +1916,7 @@ function radioClickType_SelectionChangeFcn(hObject, eventdata, handles)
     % display message
     set(handles.textMessage, 'String', str);
 %--------------------------------------------------------------------------
-function radioClickSide_SelectionChangeFcn(hObject, eventdata, handles)
+function radioClickSide_SelectionChangeFcn(hObject, eventdata, handles) %#ok<*DEFNU>
     % get selected val 
     hSelected = hObject; 
     tag = get(hSelected, 'Tag');
@@ -1937,7 +1940,7 @@ function radioClickSide_SelectionChangeFcn(hObject, eventdata, handles)
 % Plot settings callbacks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %--------------------------------------------------------------------------
-function buttonClearPlot_Callback(hObject, eventdata, handles)
+function buttonClearPlot_Callback(hObject, eventdata, handles) %#ok<*INUSL>
     % display message 
     str = '** clear plot';
     set(handles.textMessage, 'String', str);
@@ -2045,7 +2048,7 @@ function checkPlotUpclose_Callback(hObject, eventdata, handles)
 % editboxes for analyzed data --- editing these boxes has no effects 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %--------------------------------------------------------------------------
-function editAmpCh1_Callback(hObject, eventdata, handles)
+function editAmpCh1_Callback(hObject, eventdata, handles) %#ok<*INUSD>
 %--------------------------------------------------------------------------
 function editAmpCh2_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
