@@ -1,33 +1,18 @@
-function TytoView_simpleplot(curvedata, curvesettings, w, StartTime, EndTime)
+function TytoView_simpleplot_2012(curvedata, curvesettings, w)
 %------------------------------------------------------------------------
 % TytoView_simpleplot.m
 %------------------------------------------------------------------------
 %  for plotting Curve data
 %------------------------------------------------------------------------
 %  Go Ashida 
-%   go.ashida@uni-oldenburg.de
+%   ashida@umd.edu
 %------------------------------------------------------------------------
 % Created: 15 March, 2012 by GA
 %
 % Revisions: 
-%   added VS calculation for sAM: 29 Nov 2012 by GA
-%   added lines to extract spikes withnin analysis window: 22 Nov 2015 by GA
+%     added VS calculation for sAM: 29 Nov, 2012 by GA
+% 
 %------------------------------------------------------------------------
-
-% assigning default parameters 
-if(nargin<3) 
-    wbin = 1.0; % (ms) default bin size
-else
-    wbin = w;
-end
-
-if(nargin<4)
- StartTime = curvesettings.analysis.StartTime; % default analysis window (start time)
-end
-
-if(nargin<5)
- EndTime = curvesettings.analysis.EndTime;  % default analysis window (end time)
-end
 
 %----------------------------------------------------------
 % extracting data
@@ -152,6 +137,13 @@ end
 % plot PSTH 
 %----------------------------------------------------------
 
+% bin width
+if nargin < 3
+    wbin = 1.0; % (ms) default
+else
+    wbin = w;
+end
+
 % calculate psth
 %nbin = round(curvesettings.tdt.AcqDuration / wbin);
 nbin = round(curvesettings.stim.Duration / wbin);
@@ -181,7 +173,6 @@ drawnow;
 %----------------------------------------------------------
 % if tone with single freq is used, calculate phase histograms 
 %----------------------------------------------------------
-
 if strcmp(curvesettings.stimcache.stimtype, 'TONE') ...
     && ~strcmp(curvesettings.stimcache.loopvars{1}, 'FREQ') ...
     && ~strcmp(curvesettings.stimcache.loopvars{2}, 'FREQ') 
@@ -196,8 +187,7 @@ if strcmp(curvesettings.stimcache.stimtype, 'TONE') ...
 
     % calculate vector strength
     nbin = 60;
-    allspiketimes0 = horzcat(curvedata.spike_times{(curvedata.isspont==0)});
-    allspiketimes = allspiketimes0( allspiketimes0>StartTime & allspiketimes0<EndTime ); % added Nov 2015
+    allspiketimes = horzcat(curvedata.spike_times{(curvedata.isspont==0)});
     [ vs, prob, ntot, xbin, nspikes ] = ...
         TytoView_calcVS(allspiketimes, freq, nbin);
 
@@ -227,8 +217,7 @@ if strcmp(curvesettings.stimcache.loopvars{1}, 'ABI') ...
     for i1=1:length(x1) 
 
         % calculate VS
-        allspiketimes0 = horzcat( curvedata.spike_times{ ( curvedata.depvars_sort(:,:,1)==x1(i1) ) } );
-        allspiketimes = allspiketimes0( allspiketimes0>StartTime & allspiketimes0<EndTime ); % added Nov 2015
+        allspiketimes = horzcat( curvedata.spike_times{ ( curvedata.depvars_sort(:,:,1)==x1(i1) ) } );
         [ vs, prob, ntot, xbin, nspikes ] = ...
             TytoView_calcVS(allspiketimes, freq, nbin);
 
@@ -292,8 +281,7 @@ if max(curvesettings.stimcache.sAMp) > 0
     for i1=1:length(x1) 
 
         % calculate vector strength
-        allspiketimes0 = horzcat( curvedata.spike_times{ ( curvedata.depvars_sort(:,:,1)==x1(i1) ) } );
-        allspiketimes = allspiketimes0( allspiketimes0>StartTime & allspiketimes0<EndTime ); % added Nov 2015
+        allspiketimes = horzcat( curvedata.spike_times{ ( curvedata.depvars_sort(:,:,1)==x1(i1) ) } );
         [ vs, prob, ntot, xbin, nspikes ] = ...
             TytoView_calcVS(allspiketimes, freq(i1), nbin);
         vsa(i1) = vs; % store VS data
@@ -330,3 +318,88 @@ if max(curvesettings.stimcache.sAMp) > 0
 
 end
 
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%%%% older version %%%%
+%%%%%%%%%%%%%%%%%%%%%%%
+% if max(curvesettings.stimcache.sAMp) > 0
+% 
+%     if strcmp(upper(curvesettings.stimcache.loopvars{1}), 'SAMP')
+% 
+%         % extract frequency from the data structure
+%         tmpfreq = sort( unique( curvesettings.stimcache.sAMf ) );
+% 
+%         % get freq
+%         if curvesettings.curve.Spont
+%             freq = tmpfreq(2); % tmpfreq(1) should be spont (-99999)
+%         else
+%             freq = tmpfreq(1);
+%         end
+% 
+%         % calculate vector strength
+%         nbin = 60;
+%         allspiketimes = horzcat(curvedata.spike_times{(curvedata.isspont==0)});
+%         [ vs, prob, ntot, xbin, nspikes ] = ...
+%             TytoView_calcVS(allspiketimes, freq, nbin);
+% 
+%         % figure caption to show vs and prob
+%         if ~isempty(prob)
+%             ptxt = sprintf('sAM VS= %.4f, N= %.0f, P= %.6f', vs, ntot, prob);
+%         else 
+%             ptxt = sprintf('sAM VS= %.4f, N= %.0f, P= ????', vs, ntot);
+%         end
+% 
+%         % now plot
+%         figure;
+%         bar(xbin, nspikes, 1);
+%         xlim([0,1]);
+%         xlabel('envelope phase (cycle)');
+%         ylabel('# spike counts');
+%         title([ filestr ' : ' ptxt ] );
+%         drawnow;
+% 
+%     % if AM freq or amp is varied, then make multiple plots
+%     elseif strcmp(upper(curvesettings.stimcache.loopvars{1}), 'SAMF') 
+% 
+%         % make bins and an array for vector strength
+%         nbin = 60;
+%         figure;
+% 
+%         for i1=1:length(x1) 
+% 
+%             % get freq
+%             freq = x1(i1);
+% 
+%             % calculate VS
+%             allspiketimes = horzcat( curvedata.spike_times{ ( curvedata.depvars_sort(:,:,1)==x1(i1) ) } );
+%             [ vs, prob, ntot, xbin, nspikes ] = ...
+%                 TytoView_calcVS(allspiketimes, freq, nbin);
+% 
+%             % figure caption to show vs and prob
+%             if ~isempty(prob)
+%                 ptxt = sprintf('%s=%.0f, VS= %.3f, N= %.0f, P= %.4f', ...
+%                             curvesettings.stimcache.loopvars{1}, x1(i1), vs, ntot, prob);
+%             else 
+%                 ptxt = sprintf('%s=%.0f, VS= %.3f, N= %.0f, P= ????', ...
+%                             curvesettings.stimcache.loopvars{1}, x1(i1), vs, ntot);
+%             end
+% 
+%             % now plot
+%             ncol = floor( sqrt(length(x1)) );
+%             subplot( ceil(length(x1)/ncol), ncol, i1); 
+%             bar(xbin, nspikes, 1);
+%             xlim([0,1]);
+%             xlabel('');
+%             ylabel('# spike counts');
+%             title(ptxt);
+% 
+%        end
+%        drawnow
+%    end
+% 
+% end
+% 
