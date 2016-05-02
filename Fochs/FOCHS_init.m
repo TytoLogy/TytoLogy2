@@ -21,7 +21,8 @@ function out = FOCHS_init(stype)
 %------------------------------------------------------------------------
 % Original Version (HPSearch): 2009-2011 by SJS
 % Upgraded Version (HPSearch2): 2011-2012 by GA
-% Four-channel Input Version (FOCHS): 2012 by GA  
+% Four-channel Input Version (FOCHS): 2012 by GA
+% Optogen mods: 2016 by SJS
 %------------------------------------------------------------------------
 
 %----------------------------------------------------------------------
@@ -142,22 +143,33 @@ switch stype
         return;
 
 % I/O channel settings (depending on TDT hardware type)
-    case 'CHANNELS:NO_TDT' 
-        out.OutputChannelL = 0;
-        out.OutputChannelR = 0;
-        out.InputChannel1 = 0;
-        out.InputChannel2 = 0;
-        out.InputChannel3 = 0;
-        out.InputChannel4 = 0;
-        return;        
-    case 'CHANNELS:RX8_50K' 
-        out.OutputChannelL = 17;
-        out.OutputChannelR = 18;
-        out.InputChannel1 = 1;
-        out.InputChannel2 = 2;
-        out.InputChannel3 = 3;
-        out.InputChannel4 = 4;
-        return; 
+	% 'CHANNELS:NO_TDT' is for testing with no TDT hardware
+	case 'CHANNELS:NO_TDT' 
+		out.OutputChannelL = 0;
+		out.OutputChannelR = 0;
+		out.InputChannel1 = 0;
+		out.InputChannel2 = 0;
+		out.InputChannel3 = 0;
+		out.InputChannel4 = 0;
+		return;
+	% 'CHANNELS:RX8_50K' is for TDT RX8 module with 50kHz sampling rate
+	case 'CHANNELS:RX8_50K' 
+		out.OutputChannelL = 17;
+		out.OutputChannelR = 18;
+		out.InputChannel1 = 1;
+		out.InputChannel2 = 2;
+		out.InputChannel3 = 3;
+		out.InputChannel4 = 4;
+		return; 
+	% 'CHANNELS:RZ6_RZ5D' is for TDT RZ6 for audio out, RZ5D for spike in
+	case 'CHANNELS:RZ6_RZ5D' 
+		out.OutputChannelL = 1;
+		out.OutputChannelR = 2;
+		out.InputChannel1 = 1;
+		out.InputChannel2 = 2;
+		out.InputChannel3 = 3;
+		out.InputChannel4 = 4;
+		return; 
 
 % spike analysis settings
     case 'ANALYSIS:PARAMS'
@@ -406,7 +418,7 @@ switch stype
 
 % DATAVERSION is version code for output binary file data (SJS)
     case 'DATAVERSION'
-        out = 2.4;
+        out = 2.5;
         return;
 
 % if the argument is not known...

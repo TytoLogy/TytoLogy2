@@ -1,4 +1,5 @@
 function [ amp9, fq9, ph9 ] = FOCHS_cosfit(rvec, f, fs, stimtype) 
+%------------------------------------------------------------------------
 % [ amp9, fq9, ph9 ] = FOCHS_cosfit(rvec, f, fs, stimtype) 
 %------------------------------------------------------------------------
 % 
@@ -11,6 +12,9 @@ function [ amp9, fq9, ph9 ] = FOCHS_cosfit(rvec, f, fs, stimtype)
 %   ashida@umd.edu
 %------------------------------------------------------------------------
 % Original Version (FOCHS_cosfit): May 2012 (GA)
+%
+% Revisions:
+%	2 May 2016 (SJS): replaced m in line 34 with ~
 %------------------------------------------------------------------------
 
 n = length(rvec); 
@@ -22,15 +26,15 @@ end
 
 % find out the locking frequency
 switch upper(stimtype)
-    case 'TONE' % use default freq if tone 
-        fq9 = f;
+	case 'TONE' % use default freq if tone 
+		fq9 = f;
 
-    otherwise % use fft to estimate freq 
-        farray = (0:n-1) * (fs/n); 
-        rfft = abs(fft(rvec));
-        [m,i] = max(rfft); 
-        fq9 = farray(i); 
-    end
+	otherwise % use fft to estimate freq 
+		farray = (0:n-1) * (fs/n); 
+		rfft = abs(fft(rvec));
+		[~,i] = max(rfft);
+		fq9 = farray(i); 
+end
 
 % calculate amplitude 
 tvec = (0:n-1) / fs; % [sec]
