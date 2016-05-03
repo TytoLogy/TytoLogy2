@@ -1,7 +1,10 @@
-function Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, tdt, stimulus, channels)
-% Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, tdt, stimulus, channels)
+function Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, ...
+												tdt, stimulus, channels, optical)
 %------------------------------------------------------------------------
-%
+% Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, tdt, stimulus, channels, optical)
+%------------------------------------------------------------------------
+% FOCHS program
+%------------------------------------------------------------------------
 % Sets up TDT settings for HPSearch using 
 % 	RZ52 (via PZ2) for spike input 
 % 			- and -
@@ -27,14 +30,19 @@ function Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, tdt, stimulus, channels)
 % ashida@umd.edu
 % sshanbhag@neomed.edu
 %------------------------------------------------------------------------
-%------------------------------------------------------------------------
 % Original Version (HPSearch_RX8iosettings): 2009-2011 by SJS
 % Upgraded Version (HPSearch2_RX8settings): 2011-2012 by GA
 % Four-channel Input Version (FOCHS_RX8settings): 2012 by GA  
 % Optogen Version (FOCHS_RZ6RZ5Dsettings): 2016 by SJS  
 %------------------------------------------------------------------------
+% Revisions
+%	3 May 2016 (SJS):
+% 	 - added "optical"| input structure
+% 	 - modified code to set tags in RZ5D
+%------------------------------------------------------------------------
 
-% query the sample rate from the circuit
+% query the sample rate from the circuit - do this instead of using the
+% stored Fs within indev and outdev in order to ensure accuracy!
 inFs = RPsamplefreq(indev);
 outFs = RPsamplefreq(outdev); 
 Fs = [inFs outFs];
@@ -75,4 +83,28 @@ RPsettag(outdev, 'ChannelB', channels.OutputChannelR);
 % Set the sweep count to 1
 RPsettag(indev, 'SwCount', 1);
 RPsettag(outdev, 'SwCount', 1);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OPTICAL settings
+%	Important:
+% 		Optical output is triggered using a DAC channel (default it 9) output
+% 		on the RZ5D (thus, using the indev device!). This is due to the
+% 		limitations of only 2 analog outputs on the RZ6 and because the Thor
+% 		Labs LED stimulator controls the amplitude of LED output using an
+% 		analog voltage. The Laser diode amplitude is controlled by a dial on
+% 		the laser power supply box and is triggered using a TTL pulse.
+% 		However, using an analog signal allows a simpler configuration (don't
+% 		need to use digital outputs).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% enable/disable optical output
+RPsettag(indev, 'OptoEnable', optical.Enable);
+% set the optical amplitude (convert to volts)
+RPsettag(indev, 'OptoAmp', 0.001*optical.Amp);
+% set the optical duration (convert to samples)
+RPsettag(indev, 'OptoDur', ms2bin(optical.Dur, inFs));
+% set the optical delay (convert to samples)
+RPsettag(indev, 'OptoDelay', ms2bin(optical.Delay, inFs));
+% set the optical output channel
+RPsettag(indev, 'optoChannel', optical.Channel);
+
 

@@ -6,7 +6,7 @@ function varargout = FOCHS(varargin)
 %
 %--------------------------------------------------------------------------
 
-% Last Modified by GUIDE v2.5 19-May-2012 02:25:39
+% Last Modified by GUIDE v2.5 03-May-2016 14:05:09
 
 %--------------------------------------------------------------------------
 %  Go Ashida & Sharad Shanbhag 
@@ -897,6 +897,35 @@ function editsAMf_Callback(hObject, eventdata, handles)
         text_update(handles.editsAMf, handles.slidersAMf, handles.h2.search.limits.sAMf);
     % save handles structure
     guidata(hObject, handles);
+%--------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OPTO Settings callbacks
+%	These are used for controlling the optogenetic stimulation from 
+%	RZ5D
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%--------------------------------------------------------------------------
+function checkOpto_Callback(hObject, eventdata, handles)
+	% update val
+	handles.h2.optical.Enable = read_ui_val(hObject);
+	% display message
+	if handles.h2.optical.Enable
+		str = '** optical settings: Optical Stimulus ON';
+		set(handles.checkOpto, 'ForegroundColor', 'r');
+	else
+		str = '** optical settings: Optical Stimulus OFF';
+		set(handles.checkOpto, 'ForegroundColor', 'k');
+	end
+	set(handles.textMessage, 'String', str);
+	% update handles
+	guidata(hObject, handles);
+%--------------------------------------------------------------------------
+function editOptoAmp_Callback(hObject, eventdata, handles)
+%--------------------------------------------------------------------------
+function editOptoDur_Callback(hObject, eventdata, handles)
+%--------------------------------------------------------------------------
+function editOptoDelay_Callback(hObject, eventdata, handles)
+%--------------------------------------------------------------------------
+function editOptoChan_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Settings buttons callbacks
@@ -2400,19 +2429,36 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 function editSTDCh1_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
 function editSTDCh2_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
 function editSTDCh3_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
 function editSTDCh4_CreateFcn(hObject, eventdata, handles)
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
+%--------------------------------------------------------------------------
+function editOptoAmp_CreateFcn(hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
+function editOptoDur_CreateFcn(hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
+function editOptoDelay_CreateFcn(hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
+function editOptoChan_CreateFcn(hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
 %--------------------------------------------------------------------------
