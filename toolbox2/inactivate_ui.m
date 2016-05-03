@@ -23,4 +23,7 @@ function inactivate_ui(handle)
 %
 %------------------------------------------------------------------------
 
-set(handle, 'Enable', 'inactive');
+for n = 1:numel(handle)
+	% set Enable to 'inactive'
+	set(handle(n), 'Enable', 'inactive');
+end

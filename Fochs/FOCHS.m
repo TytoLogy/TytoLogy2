@@ -15,7 +15,8 @@ function varargout = FOCHS(varargin)
 %--------------------------------------------------------------------------
 % Original Version (HPSearch): 2009-2011 by SJS
 % Upgraded Version (HPSearch2): 2011-2012 by GA
-% Four-channel Input Version (FOCHS): 2012 by GA  
+% Four-channel Input Version (FOCHS): 2012 by GA
+% Optogen mods: 2016 by SJS
 %--------------------------------------------------------------------------
 % ** Important Notes ** (Nov 2011, GA)
 %   Parameters used in FOCHS/HPSearch2 are stored under the handles.h2 
@@ -124,7 +125,7 @@ function buttonShowVal_Callback(hObject, eventdata, handles)
         eval([ 'tmp = ' varname ';']); 
         disp(tmp);
     catch
-        e = lasterror;
+        e = MException;
         disp(['###### ' e.message]);
         disp(['###### ' e.identifier]);
     end
@@ -145,32 +146,35 @@ function buttonCallPlot_Callback(hObject, eventdata, handles)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %--------------------------------------------------------------------------
 function popupTDT_Callback(hObject, eventdata, handles)
-    % display message
-    str = '** TDT hardware selection changed';
-    set(handles.textMessage, 'String', str);
-    % get selected item 
-    tdtStrings = read_ui_str(hObject);  % list of strings
-    selectedVal = read_ui_val(hObject); % selected item number
-    selectedStr = upper(tdtStrings{selectedVal}); % selected item
-    switch selectedStr 
-        case 'NO_TDT'
-            str = 'Test run mode: No TDT hardware used.';
-%            handles.WithoutTDT = 1; 
-        case 'RX8_50K'
-            str = 'RX8 selected. Sampling rate: 50 kHz';
-%            handles.WithoutTDT = 0; 
-        case 'RZ6 + RZ5D'
-            str = 'RZ6 + RZ5D selected. Input: 50 kHz';
-%            handles.WithoutTDT = 0; 
-    end
-    % display message
-    set(handles.textMessage, 'String', str);
-    % update handles.h2.config according to the selected TDT hardware
-    handles.TDThardware = selectedStr; 
-    handles.h2.config = FOCHS_config(handles.TDThardware);
-    handles.h2.config.TDTLOCKFILE = handles.TDTLOCKFILE;
-    % save handles structure 
-    guidata(hObject, handles); 
+	% display message
+	str = '** TDT hardware selection changed';
+	set(handles.textMessage, 'String', str);
+	% get selected item 
+	tdtStrings = read_ui_str(hObject);  % list of strings
+	selectedVal = read_ui_val(hObject); % selected item number
+	selectedStr = upper(tdtStrings{selectedVal}); % selected item
+	keyboard
+	switch selectedStr 
+		case 'NO_TDT'
+			str = 'Test run mode: No TDT hardware used.';
+			%            handles.WithoutTDT = 1; 
+		case 'RX8_50K'
+			str = 'RX8 selected. Sampling rate: 50 kHz';
+			%            handles.WithoutTDT = 0; 
+		case 'RZ6OUT200K_RZ5DIN'
+			str = 'RZ6out200K_RZ5Din selected. Input: 50 kHz, Output: 200 kHz';
+		%            handles.WithoutTDT = 0;
+		otherwise
+			str = 'unknown hw string';
+	end
+	% display message
+	set(handles.textMessage, 'String', str);
+	% update handles.h2.config according to the selected TDT hardware
+	handles.TDThardware = selectedStr; 
+	handles.h2.config = FOCHS_config(handles.TDThardware);
+	handles.h2.config.TDTLOCKFILE = handles.TDTLOCKFILE;
+	% save handles structure 
+	guidata(hObject, handles); 
 %--------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Enabling (or disabling) TDT hardware 
@@ -249,8 +253,12 @@ function buttonTDTenable_Callback(hObject, eventdata, handles)
             handles.indev.status = tmphandles.indev.status;
             handles.outdev.status = tmphandles.outdev.status;
             handles.zBUS.status = tmphandles.zBUS.status;
-            handles.PA5L.status = tmphandles.PA5L.status;
-            handles.PA5R.status = tmphandles.PA5R.status;
+				if ~isempty(tmphandles.PA5L)
+	            handles.PA5L.status = tmphandles.PA5L.status;
+				end
+				if ~isempty(tmphandles.PA5R)
+	            handles.PA5R.status = tmphandles.PA5R.status;
+				end
             % update UI
             set(hObject, 'ForegroundColor', ENABLECOLOR);
             update_ui_str(hObject, 'TDT Enable')
@@ -910,22 +918,126 @@ function checkOpto_Callback(hObject, eventdata, handles)
 	% display message
 	if handles.h2.optical.Enable
 		str = '** optical settings: Optical Stimulus ON';
-		set(handles.checkOpto, 'ForegroundColor', 'r');
 	else
 		str = '** optical settings: Optical Stimulus OFF';
-		set(handles.checkOpto, 'ForegroundColor', 'k');
 	end
 	set(handles.textMessage, 'String', str);
+	% update UI
+	FOCHS_updateUI(handles, 'OPTICAL');
 	% update handles
 	guidata(hObject, handles);
 %--------------------------------------------------------------------------
 function editOptoAmp_Callback(hObject, eventdata, handles)
+    % display message
+    str = '** optical module: Amp changed';
+    set(handles.textMessage, 'String', str);
+    % check string
+    tmp = read_ui_str(hObject, 'n');
+    if isempty(tmp) % if empty string, then use non-numeric
+		tmp = false;
+    end 
+	% if string is not numeric, then show error and revert to old string 
+	if ~isnumeric(tmp) 
+		str = 'Optical Amplitude must be a number';  
+		set(handles.textMessage, 'String', str);
+		update_ui_str(hObject, handles.h2.optical.Amp); 
+		return;
+	end
+	% check limits
+	if checklim(tmp, handles.h2.optical.limits.Amp) 
+		handles.h2.optical.Amp = tmp;
+		guidata(hObject, handles);
+	else % if out of limits, then show error message and revert to old string
+		str = sprintf('Optical Amp out of bounds [%d %d]', ... 
+							handles.h2.optical.limits.Amp(1), ...
+							handles.h2.optical.limits.Amp(2));
+		set(handles.textMessage, 'String', str);
+		update_ui_str(hObject, handles.h2.optical.Amp);
+	end
 %--------------------------------------------------------------------------
 function editOptoDur_Callback(hObject, eventdata, handles)
+    % display message
+    str = '** optical module: Dur changed';
+    set(handles.textMessage, 'String', str);
+    % check string 
+    tmp = read_ui_str(hObject, 'n');
+    if isempty(tmp) % if empty string, then use non-numeric
+		tmp = false;
+    end 
+	% if string is not numeric, then show error and revert to old string 
+	if ~isnumeric(tmp) 
+		str = 'Optical Duration must be a number';  
+		set(handles.textMessage, 'String', str);
+		update_ui_str(hObject, handles.h2.optical.Dur); 
+		return;
+	end
+	% check limits
+	if checklim(tmp, handles.h2.optical.limits.Dur) 
+		handles.h2.optical.Dur = tmp;
+		guidata(hObject, handles);
+	else % if out of limits, then show error message and revert to old string
+		str = sprintf('Optical Duration out of bounds [%d %d]', ... 
+							handles.h2.optical.limits.Dur(1), ...
+							handles.h2.optical.limits.Dur(2));
+		set(handles.textMessage, 'String', str);
+		update_ui_str(hObject, handles.h2.optical.Dur);
+	end
 %--------------------------------------------------------------------------
 function editOptoDelay_Callback(hObject, eventdata, handles)
+    % display message
+    str = '** optical module: Delay changed';
+    set(handles.textMessage, 'String', str);
+    % check string 
+    tmp = read_ui_str(hObject, 'n');
+    if isempty(tmp) % if empty string, then use non-numeric
+		tmp = false;
+    end 
+	% if string is not numeric, then show error and revert to old string 
+	if ~isnumeric(tmp) 
+		str = 'Optical Delay must be a number';  
+		set(handles.textMessage, 'String', str);
+		update_ui_str(hObject, handles.h2.optical.Delay); 
+		return;
+	end
+	% check limits
+	if checklim(tmp, handles.h2.optical.limits.Delay) 
+		handles.h2.optical.Delay = tmp;
+		guidata(hObject, handles);
+	else % if out of limits, then show error message and revert to old string
+		str = sprintf('Optical Delay out of bounds [%d %d]', ... 
+							handles.h2.optical.limits.Delay(1), ...
+							handles.h2.optical.limits.Delay(2));
+		set(handles.textMessage, 'String', str);
+		update_ui_str(hObject, handles.h2.optical.Delay);
+	end
 %--------------------------------------------------------------------------
 function editOptoChan_Callback(hObject, eventdata, handles)
+    % display message
+    str = '** optical module: Channel changed';
+    set(handles.textMessage, 'String', str);
+    % check string 
+    tmp = read_ui_str(hObject, 'n');
+    if isempty(tmp) % if empty string, then use non-numeric
+		tmp = false;
+    end 
+	% if string is not numeric, then show error and revert to old string 
+	if ~isnumeric(tmp) 
+		str = 'Optical Channel must be a number';  
+		set(handles.textMessage, 'String', str);
+		update_ui_str(hObject, handles.h2.optical.Channel); 
+		return;
+	end
+	% check limits
+	if checklim(tmp, handles.h2.optical.limits.Channel) 
+		handles.h2.optical.Channel = tmp;
+		guidata(hObject, handles);
+	else % if out of limits, then show error message and revert to old string
+		str = sprintf('Optical Channel out of bounds [%d %d]', ... 
+							handles.h2.optical.limits.Channel(1), ...
+							handles.h2.optical.limits.Channel(2));
+		set(handles.textMessage, 'String', str);
+		update_ui_str(hObject, handles.h2.optical.Channel);
+	end
 %--------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Settings buttons callbacks
@@ -961,7 +1073,7 @@ function buttonSaveSettings_Callback(hObject, eventdata, handles)
     settingdata.paramCF = handles.h2.paramCF;
     settingdata.paramCD = handles.h2.paramCD;
     settingdata.paramPH = handles.h2.paramPH;
-    settingdata.paramCurrent = handles.h2.paramCurrent;
+    settingdata.paramCurrent = handles.h2.paramCurrent; %#ok<STRNU>
     % save data
     str = ['Saving settings to ' fname];
     set(handles.textMessage, 'String', str);
@@ -1037,7 +1149,7 @@ function buttonLoadCALL_Callback(hObject, eventdata, handles)
     try 
         tmpcal = TytoLogy2_loadcal(fullfile(fpath, fname), 'L'); 
     catch % on error, tmpcal is empty
-        tmpcal = [];
+        tmpcal = []; %#ok<NASGU>
         return;
     end
     % if tmpcal is a struct, loading cal file was hopefully successful
@@ -1086,7 +1198,7 @@ function buttonLoadCALR_Callback(hObject, eventdata, handles)
     try 
         tmpcal = TytoLogy2_loadcal(fullfile(fpath, fname), 'R'); 
     catch % on error, tmpcal is empty
-        tmpcal = [];
+        tmpcal = []; %#ok<NASGU>
         return;
     end
     % if tmpcal is a struct, loading cal file was hopefully successful

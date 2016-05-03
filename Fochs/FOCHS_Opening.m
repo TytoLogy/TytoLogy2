@@ -1,3 +1,4 @@
+%------------------------------------------------------------------------
 % FOCHS_Opening.m
 %------------------------------------------------------------------------
 % 
@@ -9,11 +10,12 @@
 %------------------------------------------------------------------------
 %  Go Ashida & Sharad Shanbhag
 %   ashida@umd.edu
-%   sharad.shanbhag@einstein.yu.edu
+%   sshanbhag@neomed.edu
 %------------------------------------------------------------------------
 % Original Version (HPSearch): 2009-2011 by SJS
 % Upgraded Version (HPSearch2): 2011-2012 by GA
-% Four-channel Input Version (FOCHS): 2012 by GA  
+% Four-channel Input Version (FOCHS): 2012 by GA
+% Optogen mods: 2016 by SJS
 %------------------------------------------------------------------------
 
 handles.h2 = struct();
@@ -111,6 +113,9 @@ handles.h2.paramCurrent = handles.h2.paramBF;
 % -- parameters for click recordings
 handles.h2.click = FOCHS_init('CLICK:PARAMS');
 handles.h2.click.limits = FOCHS_init('CLICK:LIMITS');
+% -- parameters for optical stimulus
+handles.h2.optical = FOCHS_init('OPTICAL');
+handles.h2.optical.limits = FOCHS_init('OPTICAL:LIMITS');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % saving parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -127,4 +132,4 @@ FOCHS_updateUI(handles,'ANALYSIS');
 FOCHS_updateUI(handles,'PLOTS');
 FOCHS_updateUI(handles,'CURVE');
 FOCHS_updateUI(handles,'CLICK');
-
+FOCHS_updateUI(handles, 'OPTICAL');

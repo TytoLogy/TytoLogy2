@@ -17,7 +17,7 @@ function out = FOCHS_config(stype)
 %------------------------------------------------------------------------
 %  Go Ashida & Sharad Shanbhag
 %   ashida@umd.edu
-%	sharad.shanbhag@einstein.yu.edu
+%	sshanbhag@neomed.edu
 %------------------------------------------------------------------------
 % Original Version (HPSearch_init): 2009-2011 by SJS
 % Upgraded Version (HPSearch2_config): 2011-2012 by GA
@@ -31,12 +31,11 @@ function out = FOCHS_config(stype)
 if ~nargin
 	stype = '';
 end
-stype = upper(stype);
 
 %----------------------------------------------------------------------
 % return desired information
 %----------------------------------------------------------------------
-switch stype
+switch upper(stype)
 	case 'NO_TDT'
 		out.CONFIGNAME = stype;
 		% function handles
@@ -78,7 +77,7 @@ switch stype
 		return;
 
 	% use RZ6 for audio output, RZ5D for neural input	
-	case 'RZ6out200K_RZ5Din'
+	case 'RZ6OUT200K_RZ5DIN'
 		out.CONFIGNAME = stype;
 		% function handles
 		out.ioFunc = @FOCHS_RZ6RZ5Dio;
@@ -94,7 +93,7 @@ switch stype
 		out.outdev.hardware = 'RZ6';
 		out.outdev.Fs = 200000;
 		out.outdev.Circuit_Path = 'C:\TytoLogy\Toolboxes\TDTToolbox\Circuits\RZ6'; 
-		out.outdev.Circuit_Name = 'RZ6_2Processor_SpeakerOutput_zBus.rcx';
+		out.outdev.Circuit_Name = 'RZ6_2ChannelOutputAtten_zBus.rcx';
 		out.outdev.Dnum = 1; % device number
 		return;
 

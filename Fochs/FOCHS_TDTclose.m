@@ -24,15 +24,16 @@ function [ outhandles, outflag ] = FOCHS_TDTclose(config, indev, outdev, zBUS, P
 %------------------------------------------------------------------------
 %  Go Ashida & Sharad Shanbhag
 %   ashida@umd.edu
-%   sharad.shanbhag@einstein.yu.edu
+%   sshanbhag@neomed.edu
 %------------------------------------------------------------------------
 % Original Version (HPSearch): 2009-2011 by SJS
 % Upgraded Version (HPSearch2): 2011-2012 by GA
-% Four-channel Input Version (FOCHS): 2012 by GA  
+% Four-channel Input Version (FOCHS): 2012 by GA
+% Optogen mods: 2016 by SJS
 %------------------------------------------------------------------------
 
 disp([ mfilename ': ...closing TDT devices...']);
-outflag = 0; % not terminated
+outflag = 0; %#ok<NASGU> % not terminated
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % check the TDT lock file 
@@ -50,7 +51,12 @@ end
 % Exit gracefully (close TDT objects, etc)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if TDTINIT
-    outhandles = struct();
+    outhandles = struct(); %#ok<UNRCH>
+	outhandles.zBUS = zBUS;
+	outhandles.indev = indev;
+	outhandles.outdev = outdev;
+	outhandles.PA5L = PA5L;
+	outhandles.PA5R = PA5R;
 
     %------------------------------------------------------------------
     % setting zBUS/indev/outdev/PA5 structure accoring to the config info
@@ -62,10 +68,14 @@ if TDTINIT
     % terminate PA5, RX*, zBUS 
     % pa5.closeFunc, indev.closeFunc, zbus.closeFunc etc. are defined below
     %------------------------------------------------------------------
-    disp('...closing PA5L')
-    outhandles.PA5L.status = pa5.closeFunc(PA5L);
-    disp('...closing PA5R')
-    outhandles.PA5R.status = pa5.closeFunc(PA5R);
+	 if ~isempty(outhandles.PA5L)
+	    disp('...closing PA5L')
+	    outhandles.PA5L.status = pa5.closeFunc(PA5L);
+	 end
+	 if ~isempty(outhandles.PA5R)
+		disp('...closing PA5R')
+		 outhandles.PA5R.status = pa5.closeFunc(PA5R);
+	 end
     disp('...closing indev')
     outhandles.indev.status = idev.closeFunc(indev);
     disp('...closing outdev')
@@ -89,18 +99,23 @@ end
 % internal function
 %--------------------------------------------------------------------------
 function [ zbus, idev, odev, pa5 ] = setiodev(config)
-    str = upper(config.indev.hardware);
-    switch str
-        case 'NONE' % no TDT hardware is used
-            zbus.closeFunc = @(varargin) -1;  
-            idev.closeFunc = @(varargin) -1; 
-            odev.closeFunc = @(varargin) -1; 
-            pa5.closeFunc  = @(varargin) -1; 
+	switch upper(config.CONFIGNAME)
+		case 'NO_TDT' % no TDT hardware is used
+			zbus.closeFunc = @(varargin) -1;  
+			idev.closeFunc = @(varargin) -1; 
+			odev.closeFunc = @(varargin) -1; 
+			pa5.closeFunc  = @(varargin) -1; 
 
-        case 'RX8' % since indev=outdev, closeFunc should be called only once
-            zbus.closeFunc = @(varargin) 0;  % does nothing but returns the success flag
-            idev.closeFunc = @RPclose; 
-            odev.closeFunc = @(varargin) -99; 
-            pa5.closeFunc  = @PA5close;
+		case 'RX8_50K' % since indev=outdev, closeFunc should be called only once
+			zbus.closeFunc = @(varargin) 0;  % does nothing but returns the success flag
+			idev.closeFunc = @RPclose; 
+			odev.closeFunc = @(varargin) -99; 
+			pa5.closeFunc  = @PA5close;
 
-        end
+		case 'RZ6OUT200K_RZ5DIN'
+			zbus.closeFunc = @zBUSclose;
+			idev.closeFunc = @RPclose; 
+			odev.closeFunc = @RPclose;
+			pa5.closeFunc  = @(varargin) -1; 
+
+	end

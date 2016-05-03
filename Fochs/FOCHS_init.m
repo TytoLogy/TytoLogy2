@@ -38,16 +38,14 @@ if ~nargin
     stype = '';
 end
 
-stype = upper(stype);
-
 %----------------------------------------------------------------------
 % return desired information
 %----------------------------------------------------------------------
-switch stype
+switch upper(stype)
 
 	% optical stimulation information (defaults)
 	case 'OPTICAL'
-		out.ON = 0;
+		out.Enable = 0;
 		out.Amp = 0;
 		out.Dur = 5;
 		out.Delay = 0;
@@ -80,8 +78,8 @@ switch stype
 		out.Animal = '000';
 		out.Unit = '0';
 		out.Rec = '0';
-		out.Date = TytoLogy2_datetime('date');
-		out.Time = TytoLogy2_datetime('time');
+		out.Date = TytoLogy_datetime('date');
+		out.Time = TytoLogy_datetime('time');
 		out.Pen = '0';
 		out.AP = '0';
 		out.ML = '0';
