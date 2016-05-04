@@ -9,9 +9,12 @@ function [resp1, npts1, resp2, npts2, resp3, npts3, resp4, npts4, out_msg] = ...
 % and records data from four input channels (A-D). 
 %
 %------------------------------------------------------------------------
-% designed to use with RPVD circuit: 
-%               RZ5D_50k_FourChannelInput_zBus.rcx
-%               RZ6_2Processor_SpeakerOutput_zBus.rcx
+% designed to use with RPVD circuits on these devices:
+% 	indev: RZ5D
+% 		RZ5D_50k_FourChannelInput_zBus.rcx
+% 		RZ5D_50k_4In_1Out_zBus.rcx
+% 	outdev: RZ6
+% 		RZ6_2Processor_SpeakerOutput_zBus.rcx
 %------------------------------------------------------------------------
 % Input Arguments:
 %   stim    [2xN] stereo output signal (row1 = left, row2 = right)
@@ -23,6 +26,7 @@ function [resp1, npts1, resp2, npts2, resp3, npts3, resp4, npts4, out_msg] = ...
 % Output Arguments:
 %   respX    [1xinpts] input data vector (X=1-4)
 %   nptsX    number of data points read (X=1-4)
+%	out_msg	output information
 %------------------------------------------------------------------------
 
 %------------------------------------------------------------------------

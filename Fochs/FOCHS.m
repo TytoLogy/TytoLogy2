@@ -6,7 +6,7 @@ function varargout = FOCHS(varargin)
 %
 %--------------------------------------------------------------------------
 
-% Last Modified by GUIDE v2.5 03-May-2016 14:05:09
+% Last Modified by GUIDE v2.5 04-May-2016 14:49:16
 
 %--------------------------------------------------------------------------
 %  Go Ashida & Sharad Shanbhag 
@@ -905,6 +905,17 @@ function editsAMf_Callback(hObject, eventdata, handles)
         text_update(handles.editsAMf, handles.slidersAMf, handles.h2.search.limits.sAMf);
     % save handles structure
     guidata(hObject, handles);
+%--------------------------------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Monitor Settings callbacks
+%	These are used for controlling the RZ5D audio monitor
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%--------------------------------------------------------------------------
+function editMonGain_Callback(hObject, eventdata, handles)
+
+
+function popupMonChan_Callback(hObject, eventdata, handles)
+
 %--------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OPTO Settings callbacks
@@ -2570,6 +2581,15 @@ function editOptoDelay_CreateFcn(hObject, eventdata, handles)
 		 set(hObject,'BackgroundColor','white');
 	end
 function editOptoChan_CreateFcn(hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		 set(hObject,'BackgroundColor','white');
+	end
+%--------------------------------------------------------------------------
+function editMonGain_CreateFcn(hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+	    set(hObject,'BackgroundColor','white');
+	end
+function popupMonChan_CreateFcn(hObject, eventdata, handles)
 	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
 		 set(hObject,'BackgroundColor','white');
 	end
