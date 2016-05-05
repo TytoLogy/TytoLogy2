@@ -87,7 +87,7 @@ switch upper(stype)
 		out.indev.hardware = 'RZ5D';
 		out.indev.Fs = 50000;
 		out.indev.Circuit_Path = 'C:\TytoLogy\Toolboxes\TDTToolbox\Circuits\RZ5D';
-		out.indev.Circuit_Name = 'RZ5D_50k_FourChannelInput_zBus';
+		out.indev.Circuit_Name = 'RZ5D_50k_4In_1Out_zBus';
 		out.indev.Dnum = 1; % device number
 		% output device
 		out.outdev.hardware = 'RZ6';

@@ -58,31 +58,35 @@ RPsettag(outdev, 'StimDur', ms2bin(stimulus.Duration, outFs));
 RPsettag(indev, 'AcqDur', ms2bin(tdt.AcqDuration, inFs));
 % Set the total sweep period time - input
 RPsettag(indev, 'SwPeriod', ms2bin(tdt.SweepPeriod, inFs));
-RPsettag(indev, 'SwPeriod', ms2bin(tdt.SweepPeriod, inFs));
 % Set the total sweep period time - output
-RPsettag(outdev, 'SwPeriod', ms2bin(tdt.SweepPeriod, outFs));
 RPsettag(outdev, 'SwPeriod', ms2bin(tdt.SweepPeriod, outFs));
 % set the TTL pulse duration
 RPsettag(indev, 'TTLPulseDur', ms2bin(tdt.TTLPulseDur, inFs));
 % set the TTL pulse duration
 RPsettag(outdev, 'TTLPulseDur', ms2bin(tdt.TTLPulseDur, outFs));
 % set the high pass filter
-RPsettag(indev, 'HPenable', 1);
+RPsettag(indev, 'HPEnable', 1);
 RPsettag(indev, 'HPFreq', tdt.HPFreq);
 % set the low pass filter
-RPsettag(indev, 'LPenable', 1);
+RPsettag(indev, 'LPEnable', 1);
 RPsettag(indev, 'LPFreq', tdt.LPFreq);
 % set input channels 
 RPsettag(indev, 'inChannelA', channels.InputChannel1); 
 RPsettag(indev, 'inChannelB', channels.InputChannel2); 
 RPsettag(indev, 'inChannelC', channels.InputChannel3); 
-RPsettag(indev, 'inChannelD', channels.InputChannel4); 
-% set output channels 
-RPsettag(outdev, 'ChannelA', channels.OutputChannelL); 
-RPsettag(outdev, 'ChannelB', channels.OutputChannelR); 
+RPsettag(indev, 'inChannelD', channels.InputChannel4);
 % Set the sweep count to 1
 RPsettag(indev, 'SwCount', 1);
 RPsettag(outdev, 'SwCount', 1);
+% set the overall gain for input
+RPsettag(indev, 'Gain', tdt.CircuitGain);
+% set electrode channel to monitor via audio output
+RPsettag(indev, 'MonChan', channels.MonitorChannel);
+% set monitor gain
+RPsettag(indev, 'MonGain', tdt.MonitorGain);
+% set output channel for audio monitor
+RPsettag(indev, 'MonOutChan', channels.MonitorOutputChannel);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OPTICAL settings
@@ -105,6 +109,6 @@ RPsettag(indev, 'OptoDur', ms2bin(optical.Dur, inFs));
 % set the optical delay (convert to samples)
 RPsettag(indev, 'OptoDelay', ms2bin(optical.Delay, inFs));
 % set the optical output channel
-RPsettag(indev, 'optoChannel', optical.Channel);
+RPsettag(indev, 'OptoChan', optical.Channel);
 
 

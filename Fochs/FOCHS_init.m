@@ -49,7 +49,7 @@ switch upper(stype)
 		out.Amp = 0;
 		out.Dur = 5;
 		out.Delay = 0;
-		out.Channel = 9;	% note that this is also set in RZ6+RZ5D
+		out.Channel = 10;	% note that this is also set in RZ6+RZ5D
 		return;
 	
 	case 'OPTICAL:LIMITS'
@@ -147,6 +147,7 @@ switch upper(stype)
 		out.SweepPeriod = out.AcqDuration + 10;
 		out.TTLPulseDur = 1;
 		out.CircuitGain = 1;      % gain for TDT circuit
+		out.MonitorGain = 1;
 		out.HPEnable = 1;         % enable high pass filter
 		out.HPFreq = 200;         % high pass frequency
 		out.LPEnable = 1;         % enable low pass filter
@@ -191,7 +192,9 @@ switch upper(stype)
 		out.InputChannel2 = 2;
 		out.InputChannel3 = 3;
 		out.InputChannel4 = 4;
-		out.OpticalChannel = 9;
+		out.OpticalChannel = 10;		% RZ5D DAC channel for optigen stimulus
+		out.MonitorChannel = 1;			% electrode channel to send to audio monitor
+		out.MonitorOutputChannel = 9;		% RZ5D DAC channel for audio monitor of spikes
 		return; 
 
 	% spike analysis settings (defaults)

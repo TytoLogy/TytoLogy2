@@ -1,4 +1,4 @@
-function [ outhandles, outflag ] = FOCHS_TDTclose(config, indev, outdev, zBUS, PA5L, PA5R)
+function [outhandles, outflag] = FOCHS_TDTclose(config, indev, outdev, zBUS, PA5L, PA5R)
 %------------------------------------------------------------------------
 % [ outhandles, outflag ] = FOCHS_TDTclose(config, indev, outdev, zBUS, PA5L, PA5R)
 %------------------------------------------------------------------------
@@ -51,7 +51,7 @@ end
 % Exit gracefully (close TDT objects, etc)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if TDTINIT
-    outhandles = struct(); %#ok<UNRCH>
+	outhandles = struct(); %#ok<UNRCH>
 	outhandles.zBUS = zBUS;
 	outhandles.indev = indev;
 	outhandles.outdev = outdev;
