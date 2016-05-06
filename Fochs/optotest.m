@@ -107,7 +107,7 @@ Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, tdt, stimulus, channels, optical);
 
 %% do stuff
 
-freqs = [220 440 880 1760];
+freqs = 440 * [1 2 3 4];
 nreps = 5;
 
 for f = 1:length(freqs)
@@ -138,10 +138,10 @@ for f = 1:length(freqs)
 
 		% plot returned values
 		figure(5)
-		subplot(411), plot(resp1);
-		subplot(412), plot(resp2);
-		subplot(413), plot(resp3);
-		subplot(414), plot(resp4);
+		subplot(411), plot(linspace(0, tdt.AcqDuration, npts1), resp1);
+		subplot(412), plot(linspace(0, tdt.AcqDuration, npts2), resp2);
+		subplot(413), plot(linspace(0, tdt.AcqDuration, npts3), resp3);
+		subplot(414), plot(linspace(0, tdt.AcqDuration, npts4), resp4);
 		drawnow
 
 		pause(0.001*stimulus.ISI)

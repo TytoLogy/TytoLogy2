@@ -65,9 +65,9 @@ RPsettag(indev, 'TTLPulseDur', ms2bin(tdt.TTLPulseDur, inFs));
 % set the TTL pulse duration
 RPsettag(outdev, 'TTLPulseDur', ms2bin(tdt.TTLPulseDur, outFs));
 % set the high pass filter
-RPsettag(indev, 'FreqHP', tdt.HPFreq);
+RPsettag(indev, 'HPFreq', tdt.HPFreq);
 % set the low pass filter
-RPsettag(indev, 'FreqLP', tdt.LPFreq);
+RPsettag(indev, 'LPFreq', tdt.LPFreq);
 % set input channels 
 RPsettag(indev, 'inChannelA', channels.InputChannel1); 
 RPsettag(indev, 'inChannelB', channels.InputChannel2); 
