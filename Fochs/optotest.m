@@ -77,16 +77,17 @@ channels.MonitorOutputChannel = 9;
 
 % -- parameters for optical stimulus
 % optical = FOCHS_init('OPTICAL');
-optical.Enable = 0;
-optical.Amp = 0;
-optical.Dur = 5;
-optical.Delay = 0;
+optical.Enable = 1;
+optical.Amp = 1;
+optical.Dur = 50;
+optical.Delay = 100;
 optical.Channel = 10;	% note that this is also set in RZ6+RZ5D
 
 %% start TDT hardware
 try
-	[outhandles, outflag] = FOCHS_TDTopen(config);
+	[outhandles, outflag] = FOCHS_TDTopen(config); %#ok<ASGLU>
 catch ME
+	fprintf('FOCHS_TDTopen returned outflag: %s\n', outflag);
 	error('Cannot open TDT hardware');
 end
 indev = outhandles.indev;
@@ -96,28 +97,39 @@ PA5L = outhandles.PA5L;
 PA5R = outhandles.PA5R;
 
 %% settings
+% FOCHS_RZ6RZ5Dsettings() passes settings from the device, tdt, stimulus,
+% channels and optical structs on to tags in the running TDT circuits
+% Fs is a 1X2 array of sample rates for indev and outdev - this is because
+% the actual sample rates often differ from those specified in the software
+% settings due to clock frequency divisor issues
 Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, tdt, stimulus, channels, optical);
-
 
 %% do stuff
 
+% generate [2XN] stimulus array. row 1 == output A on RZ6, row 2 = output B
 stim = synmonosine(stimulus.Duration, outdev.Fs, tone.frequency, tone.amplitude, 0);
+stim = sin2array(stim, 1, outdev.Fs);
 nullstim = syn_null(stimulus.Duration, outdev.Fs, 0);
-
 S = [stim; nullstim];
 
+% calculate # of points to acquire (in units of samples)
 inpts = ms2bin(tdt.AcqDuration, indev.Fs);
 
-
+% Set attenuation levels
 RPsettag(outdev, 'AttenL', 0);
+RPsettag(outdev, 'AttenR', 120);
+% make sure mute is off
+RPsettag(outdev, 'Mute', 0);
 
+% play stimulus, return read values
 if indev.status && outdev.status && zBUS.status
-[resp1, npts1, resp2, npts2, resp3, npts3, resp4, npts4, out_msg] = ...
-    FOCHS_RZ6RZ5Dio(S, inpts, indev, outdev, zBUS);
+	[resp1, npts1, resp2, npts2, resp3, npts3, resp4, npts4, out_msg] = ...
+				FOCHS_RZ6RZ5Dio(S, inpts, indev, outdev, zBUS);
 else
 	error('stati == 0');
 end
 
+% plot returned values
 figure(5)
 subplot(411), plot(resp1);
 subplot(412), plot(resp2);
