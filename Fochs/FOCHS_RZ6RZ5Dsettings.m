@@ -41,15 +41,17 @@ function Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, ...
 % 	 - modified code to set tags in RZ5D
 %------------------------------------------------------------------------
 
+%------------------------------------------------------------------------
 % query the sample rate from the circuit - do this instead of using the
 % stored Fs within indev and outdev in order to ensure accuracy!
+%------------------------------------------------------------------------
 inFs = RPsamplefreq(indev);
 outFs = RPsamplefreq(outdev); 
 Fs = [inFs outFs];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Input/output Settings
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%------------------------------------------------------------------------
+% STIMULUS and Acquisition (timing)
+%------------------------------------------------------------------------
 % Set the Stimulus Delay
 RPsettag(outdev, 'StimDelay', ms2bin(stimulus.Delay, outFs));
 % Set the Stimulus Duration
@@ -64,29 +66,41 @@ RPsettag(outdev, 'SwPeriod', ms2bin(tdt.SweepPeriod, outFs));
 RPsettag(indev, 'TTLPulseDur', ms2bin(tdt.TTLPulseDur, inFs));
 % set the TTL pulse duration
 RPsettag(outdev, 'TTLPulseDur', ms2bin(tdt.TTLPulseDur, outFs));
+% Set the sweep count to 1
+RPsettag(indev, 'SwCount', 1);
+RPsettag(outdev, 'SwCount', 1);
+
+%------------------------------------------------------------------------
+% Input Filtering
+%------------------------------------------------------------------------
 % set the high pass filter
 RPsettag(indev, 'HPFreq', tdt.HPFreq);
 % set the low pass filter
 RPsettag(indev, 'LPFreq', tdt.LPFreq);
+
+%------------------------------------------------------------------------
+% Input Channel and Gain Settings
+%------------------------------------------------------------------------
 % set input channels 
 RPsettag(indev, 'inChannelA', channels.InputChannel1); 
 RPsettag(indev, 'inChannelB', channels.InputChannel2); 
 RPsettag(indev, 'inChannelC', channels.InputChannel3); 
 RPsettag(indev, 'inChannelD', channels.InputChannel4);
-% Set the sweep count to 1
-RPsettag(indev, 'SwCount', 1);
-RPsettag(outdev, 'SwCount', 1);
 % set the overall gain for input
 RPsettag(indev, 'Gain', tdt.CircuitGain);
+
+%------------------------------------------------------------------------
+% Audio monitor
+%------------------------------------------------------------------------
 % set electrode channel to monitor via audio output
 RPsettag(indev, 'MonChan', channels.MonitorChannel);
 % set monitor gain
 RPsettag(indev, 'MonGain', tdt.MonitorGain);
-% set output channel for audio monitor
+% set output channel for audio monitor (channel 9 on RZ5D 
+% is dedicated to the built-in audio speaker/monitor)
 RPsettag(indev, 'MonOutChan', channels.MonitorOutputChannel);
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%------------------------------------------------------------------------
 % OPTICAL settings
 %	Important:
 % 		Optical output is triggered using a DAC channel (default it 9) output
@@ -97,7 +111,7 @@ RPsettag(indev, 'MonOutChan', channels.MonitorOutputChannel);
 % 		the laser power supply box and is triggered using a TTL pulse.
 % 		However, using an analog signal allows a simpler configuration (don't
 % 		need to use digital outputs).
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%------------------------------------------------------------------------
 % enable/disable optical output
 RPsettag(indev, 'OptoEnable', optical.Enable);
 % set the optical amplitude (convert to volts)
@@ -109,4 +123,10 @@ RPsettag(indev, 'OptoDelay', ms2bin(optical.Delay, inFs));
 % set the optical output channel
 RPsettag(indev, 'OptoChan', optical.Channel);
 
+%------------------------------------------------------------------------
+% attenuation
+%------------------------------------------------------------------------
+RPsettag(outdev, 'AttenL', 90);
+RPsettag(outdev, 'AttenR', 90);
+RPsettag(outdev, 'Mute', 0);
 

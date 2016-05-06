@@ -33,6 +33,7 @@ tdt = handles.h2.tdt;
 stimulus = handles.h2.stimulus;
 channels = handles.h2.channels;
 analysis = handles.h2.analysis;
+optical = handles.h2.optical;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % setting I/O parameters to TDT circuit
@@ -41,7 +42,7 @@ analysis = handles.h2.analysis;
 % Note: the function handle 'handles.h2.config.TDTsetFunc' is 
 %       defined in FOCHS_config()
 %-------------------------------------
-Fs = handles.h2.config.TDTsetFunc(indev, outdev, tdt, stimulus, channels);
+Fs = handles.h2.config.TDTsetFunc(indev, outdev, tdt, stimulus, channels, optical);
 
 % sampling rates 
 inFs = Fs(1);
@@ -106,41 +107,44 @@ while read_ui_val(hObject)  % loop while Search button is on
     % even if one or both channels are off, make binaural sound first,  
     % and then overwrite the silent channel with zero 
 
-    switch upper(search.stimtype)
-        case 'NOISE'
-            % interpolate calibration data
-            caldata = TytoLogy2_interpcal(mergedcaldata, search.Fmin, search.Fmax);
-            % synthesize stimulus waveform
-            if ~handles.h2.stimulus.Frozen || newstimFlag % generate new noise
-                [tmpS, tmprms, noisemag, noisephase] = syn_headphone_noise( ...
-                    stimulus.Duration, outFs, search.Fmin, search.Fmax, ...
-                    search.ITD, search.BC, caldata );
-            else % handles.h2.stimulus.Frozen = 1 --- use old noise
-                [tmpS, tmprms, noisemag, noisephase] = syn_headphone_noise( ...
-                    stimulus.Duration, outFs, search.Fmin, search.Fmax, ...
-                    search.ITD, search.BC, caldata, noisemag, noisephase );
-            end  
+	switch upper(search.stimtype)
+	case 'NOISE'
+		% interpolate calibration data
+		caldata = TytoLogy2_interpcal(mergedcaldata, search.Fmin, search.Fmax);
+		% synthesize stimulus waveform
+		if ~handles.h2.stimulus.Frozen || newstimFlag % generate new noise
+			[tmpS, tmprms, noisemag, noisephase] = ...
+				syn_headphone_noise( ...
+					stimulus.Duration, outFs, search.Fmin, search.Fmax, ...
+					search.ITD, search.BC, caldata );
+		else % handles.h2.stimulus.Frozen = 1 --- use old noise
+			[tmpS, tmprms, noisemag, noisephase] = ...
+				syn_headphone_noise( ...
+					stimulus.Duration, outFs, search.Fmin, search.Fmax, ...
+					search.ITD, search.BC, caldata, noisemag, noisephase );
+		end  
 
-        case 'TONE'
-            % use merged calibration data 
-            caldata = mergedcaldata;
-            % synthesize stimulus waveform
-            [tmpS, tmprms] = syn_headphone_tone( ...
-                stimulus.Duration, outFs, search.Freq, ...
-                search.ITD, stimulus.RadVary, caldata );
+	case 'TONE'
+		% use merged calibration data 
+		caldata = mergedcaldata;
+		% synthesize stimulus waveform
+		[tmpS, tmprms] = syn_headphone_tone( ...
+				stimulus.Duration, outFs, search.Freq, ...
+				search.ITD, stimulus.RadVary, caldata );
 
-        case 'SAM'
-            % interpolate calibration data
-            caldata = TytoLogy2_interpcal(mergedcaldata, search.Fmin, search.Fmax);
-            % synthesize stimulus waveform
-            [tmpS, tmprms, tmpmod, tmpphi] = syn_headphone_amnoise( ...
-                stimulus.Duration, outFs, [search.Fmin search.Fmax], ...
-                search.ITD, search.BC, search.sAMp, search.sAMf, [], caldata);
-    end
+	case 'SAM'
+		% interpolate calibration data
+		caldata = TytoLogy2_interpcal(mergedcaldata, search.Fmin, search.Fmax);
+		% synthesize stimulus waveform
+		[tmpS, tmprms, tmpmod, tmpphi] = ...
+				syn_headphone_amnoise( ...
+					stimulus.Duration, outFs, [search.Fmin search.Fmax], ...
+					search.ITD, search.BC, search.sAMp, search.sAMf, [], caldata);
+	end
 
     % set zero to channels that are off
-    S(L,:) = tmpS(L,:) * search.LeftON; 
-    S(R,:) = tmpS(R,:) * search.RightON; 
+    S(L,:) = tmpS(L,:) * search.LeftON;  %#ok<SAGROW>
+    S(R,:) = tmpS(R,:) * search.RightON;  %#ok<SAGROW>
 
     % apply the sin^2 amplitude envelope to the stimulus
     S = sin2array(S, stimulus.Ramp, outFs);
@@ -148,62 +152,65 @@ while read_ui_val(hObject)  % loop while Search button is on
     %-------------------------------------
     % if new stimulus, then attenuator levels need to be re-computed 
     %-------------------------------------
-    if newstimFlag
+	if newstimFlag
 
-        if search.LeftON && search.RightON 
-            % if binaural, ABI and ILD are used 
-            spl_val = computeLRspl(search.ILD, search.ABI)';
-        else 
-            % if monaural (or silent), only ABI is used 
-            spl_val = [search.ABI search.ABI]; 
-        end
+		if search.LeftON && search.RightON 
+			% if binaural, ABI and ILD are used 
+			spl_val = computeLRspl(search.ILD, search.ABI)';
+		else 
+			% if monaural (or silent), only ABI is used 
+			spl_val = [search.ABI search.ABI]; 
+		end
 
-        % compute attenuator settings
-        % note: TytoLogy2_figure_atten() returns MAX_ATTEN if channel is off
-        if ~strcmp(search.stimtype, 'SAM') % 'NOISE' or 'TONE'
-               attenL = TytoLogy2_figureAtten( ...
-                spl_val(L), tmprms(L), caldata.mindbspl(L), search.LeftON);
-               attenR = TytoLogy2_figureAtten( ...
-                spl_val(R), tmprms(R), caldata.mindbspl(R), search.RightON);
-        else % 'SAM'
-            attenL = TytoLogy2_figureAtten( ...
-                spl_val(L), tmpmod(L), caldata.mindbspl(L), search.LeftON);
-            attenR = TytoLogy2_figureAtten( ...
-                spl_val(R), tmpmod(R), caldata.mindbspl(R), search.RightON);
-        end
+		% compute attenuator settings
+		% note: TytoLogy2_figure_atten() returns MAX_ATTEN if channel is off
+		if ~strcmp(search.stimtype, 'SAM') % 'NOISE' or 'TONE'
+			attenL = TytoLogy2_figureAtten( ...
+				spl_val(L), tmprms(L), caldata.mindbspl(L), search.LeftON);
+			attenR = TytoLogy2_figureAtten( ...
+				spl_val(R), tmprms(R), caldata.mindbspl(R), search.RightON);
+		else % 'SAM'
+		attenL = TytoLogy2_figureAtten( ...
+			spl_val(L), tmpmod(L), caldata.mindbspl(L), search.LeftON);
+		attenR = TytoLogy2_figureAtten( ...
+			spl_val(R), tmpmod(R), caldata.mindbspl(R), search.RightON);
+		end
 
-        % update stim struct from computed atten values
-        search.Latt = attenL;
-        search.Ratt = attenR;
+		% update stim struct from computed atten values
+		search.Latt = attenL;
+		search.Ratt = attenR;
 
-        % update the controls (editboxes and sliders) for attenuators
-        control_update(handles.editLatt, handles.sliderLatt, attenL );
-        control_update(handles.editRatt, handles.sliderRatt, attenR );
+		% update the controls (editboxes and sliders) for attenuators
+		control_update(handles.editLatt, handles.sliderLatt, attenL );
+		control_update(handles.editRatt, handles.sliderRatt, attenR );
 
-        % set the attenuators
-        % Note: the function handle 'handles.h2.config.setattenFunc' is 
-        %       defined in FOCHS_config()
-        handles.h2.config.setattenFunc(handles.PA5L, attenL);
-        handles.h2.config.setattenFunc(handles.PA5R, attenR);
+		% set the attenuators
+		% Note: the function handle 'handles.h2.config.setattenFunc' is 
+		%       defined in FOCHS_config()
+		if ~isempty(handles.PA5L)
+			handles.h2.config.setattenFunc(handles.PA5L, attenL);
+			handles.h2.config.setattenFunc(handles.PA5R, attenR);
+		else
+			handles.h2.config.setattenFunc(outdev, [attenL attenR]);
+		end
+		% store the new values
+		searchold = search;
 
-        % store the new values
-        searchold = search;
+	end % end of calculating attenuation values
 
-    end % end of calculating attenuation values
+	%-------------------------------------
+	% play the sound and return the response
+	%-------------------------------------
+	% Note: the function handle 'handles.h2.config.ioFunc' is 
+	%       defined in FOCHS_config()
+	%-------------------------------------
+	[trace1, npts1, trace2, npts2, trace3, npts3, trace4, npts4] = ...
+		handles.h2.config.ioFunc(S, acqpts, indev, outdev, zBUS);
 
-    %-------------------------------------
-    % play the sound and return the response
-    %-------------------------------------
-    % Note: the function handle 'handles.h2.config.ioFunc' is 
-    %       defined in FOCHS_config()
-    %-------------------------------------
-    [trace1, npts1, trace2, npts2, trace3, npts3, trace4, npts4] = ...
-        handles.h2.config.ioFunc(S, acqpts, indev, outdev, zBUS);
-
-    %-------------------------------------
-    % start timer to measure ISI
-    %-------------------------------------
-    tic; 
+	 %-------------------------------------
+	 % start timer to measure ISI
+	 %-------------------------------------
+	tic; 
 
     %-------------------------------------
     % data analysis / sine curve fitting
@@ -342,6 +349,10 @@ end % end of while loop
 % Note: the function handle 'handles.h2.config.setattenFunc' is 
 %       defined in FOCHS_config()
 atten = [120 120];
-handles.h2.config.setattenFunc(handles.PA5L, atten(L));
-handles.h2.config.setattenFunc(handles.PA5R, atten(R));
+if ~isempty(handles.PA5L)
+	handles.h2.config.setattenFunc(handles.PA5L, atten(L));
+	handles.h2.config.setattenFunc(handles.PA5R, atten(R));
+else
+	handles.h2.config.setattenFunc(outdev, atten);
+end
 

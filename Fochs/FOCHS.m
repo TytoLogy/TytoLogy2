@@ -6,7 +6,7 @@ function varargout = FOCHS(varargin)
 %
 %--------------------------------------------------------------------------
 
-% Last Modified by GUIDE v2.5 04-May-2016 14:49:16
+% Last Modified by GUIDE v2.5 06-May-2016 16:20:41
 
 %--------------------------------------------------------------------------
 %  Go Ashida & Sharad Shanbhag 
@@ -153,17 +153,14 @@ function popupTDT_Callback(hObject, eventdata, handles)
 	tdtStrings = read_ui_str(hObject);  % list of strings
 	selectedVal = read_ui_val(hObject); % selected item number
 	selectedStr = upper(tdtStrings{selectedVal}); % selected item
-	keyboard
+
 	switch selectedStr 
 		case 'NO_TDT'
 			str = 'Test run mode: No TDT hardware used.';
-			%            handles.WithoutTDT = 1; 
 		case 'RX8_50K'
 			str = 'RX8 selected. Sampling rate: 50 kHz';
-			%            handles.WithoutTDT = 0; 
 		case 'RZ6OUT200K_RZ5DIN'
 			str = 'RZ6out200K_RZ5Din selected. Input: 50 kHz, Output: 200 kHz';
-		%            handles.WithoutTDT = 0;
 		otherwise
 			str = 'unknown hw string';
 	end
@@ -173,6 +170,8 @@ function popupTDT_Callback(hObject, eventdata, handles)
 	handles.TDThardware = selectedStr; 
 	handles.h2.config = FOCHS_config(handles.TDThardware);
 	handles.h2.config.TDTLOCKFILE = handles.TDTLOCKFILE;
+	% update handles.h2.channels
+	handles.h2.channels = FOCHS_init(['CHANNELS:' handles.TDThardware]);	
 	% save handles structure 
 	guidata(hObject, handles); 
 %--------------------------------------------------------------------------
@@ -189,96 +188,96 @@ function buttonTDTenable_Callback(hObject, eventdata, handles)
     INITCOLOR   = [0.0 0.0 0.5];  % Dark Blue 
     ENABLECOLOR = [0.0 0.5 0.0];  % Dark Green 
 
-    % get the state of the buttons
-    buttonState = read_ui_val(hObject); % 1=ON; 0=OFF
-    if buttonState % User pressed button to enable TDT Circuits
-        % update button UI
+	% get the state of the buttons
+	buttonState = read_ui_val(hObject); % 1=ON; 0=OFF
+	if buttonState % User pressed button to enable TDT Circuits
+		% update button UI
         set(handles.buttonTDTenable, 'ForegroundColor', INITCOLOR);
         update_ui_str(hObject, 'initializing')
 
         % attempt to open TDT hardware
         [ tmphandles, tmpflag ] = FOCHS_TDTopen(handles.h2.config);
 
-        if tmpflag > 0  % TDT hardware is now running 
-            % copy handles structure if TDT is newly started or restarted
-            if tmpflag ==1; 
-                handles.indev = tmphandles.indev;
-                handles.outdev = tmphandles.outdev;
-                handles.zBUS  = tmphandles.zBUS;
-                handles.PA5L  = tmphandles.PA5L;
-                handles.PA5R  = tmphandles.PA5R;
-                MAXATTEN = 120;
-                handles.h2.config.setattenFunc(handles.PA5L, MAXATTEN);
-                handles.h2.config.setattenFunc(handles.PA5R, MAXATTEN);
-            end
-            % update UI
-            set(hObject, 'ForegroundColor', DISABLECOLOR);
-            update_ui_str(hObject, 'TDT Disable')
-            disable_ui(handles.popupTDT);
-            enable_ui(handles.buttonSearch);
-            enable_ui(handles.buttonCurve);
-            enable_ui(handles.buttonClick);
-        elseif tmpflag < 0  % faied to start TDT
-            % show error message
-            str = 'Failed to start TDT';
-            set(handles.textMessage, 'String', str);
-            errordlg(str, 'TDT initialization error');
-            % update UI
-            update_ui_val(hObject, 0);
-            set(hObject, 'ForegroundColor', ENABLECOLOR);
-            update_ui_str(hObject, 'TDT Enable');
-        else % tmpflag==0, TDT is not initialized
-            % show error message
-            str = 'TDT is not initialized'; 
-            set(handles.textMessage, 'String', str);
-            errordlg(str, 'TDT initialization error');
-            % update UI
-            update_ui_val(hObject, 0);
-            set(hObject, 'ForegroundColor', ENABLECOLOR);
-            update_ui_str(hObject, 'TDT Enable');
-        end
+		if tmpflag > 0  % TDT hardware is now running 
+			% copy handles structure if TDT is newly started or restarted
+			if tmpflag == 1; 
+				handles.indev = tmphandles.indev;
+				handles.outdev = tmphandles.outdev;
+				handles.zBUS  = tmphandles.zBUS;
+				handles.PA5L  = tmphandles.PA5L;
+				handles.PA5R  = tmphandles.PA5R;
+				MAXATTEN = 120;
+				handles.h2.config.setattenFunc(handles.PA5L, MAXATTEN);
+				handles.h2.config.setattenFunc(handles.PA5R, MAXATTEN);
+			end
+			% update UI
+			set(hObject, 'ForegroundColor', DISABLECOLOR);
+			update_ui_str(hObject, 'TDT Disable')
+			disable_ui(handles.popupTDT);
+			enable_ui(handles.buttonSearch);
+			enable_ui(handles.buttonCurve);
+			enable_ui(handles.buttonClick);
+		elseif tmpflag < 0  % faied to start TDT
+			% show error message
+			str = 'Failed to start TDT';
+			set(handles.textMessage, 'String', str);
+			errordlg(str, 'TDT initialization error');
+			% update UI
+			update_ui_val(hObject, 0);
+			set(hObject, 'ForegroundColor', ENABLECOLOR);
+			update_ui_str(hObject, 'TDT Enable');
+		else % tmpflag==0, TDT is not initialized
+			% show error message
+			str = 'TDT is not initialized'; 
+			set(handles.textMessage, 'String', str);
+			errordlg(str, 'TDT initialization error');
+			% update UI
+			update_ui_val(hObject, 0);
+			set(hObject, 'ForegroundColor', ENABLECOLOR);
+			update_ui_str(hObject, 'TDT Enable');
+		end
 
-    else % buttonState == 0: User pressed button to turn off TDT Circuits
-        % update button UI
-        set(handles.buttonTDTenable, 'ForegroundColor', INITCOLOR);
-        update_ui_str(hObject, 'disabling')
+	else % buttonState == 0: User pressed button to turn off TDT Circuits
+		% update button UI
+		set(handles.buttonTDTenable, 'ForegroundColor', INITCOLOR);
+		update_ui_str(hObject, 'disabling')
 
-        % attempt to close TDT hardware
-        [ tmphandles, tmpflag ] = FOCHS_TDTclose(...
-            handles.h2.config, handles.indev, handles.outdev, ...
-            handles.zBUS, handles.PA5L, handles.PA5R);
+		% attempt to close TDT hardware
+		[ tmphandles, tmpflag ] = FOCHS_TDTclose(...
+		handles.h2.config, handles.indev, handles.outdev, ...
+		handles.zBUS, handles.PA5L, handles.PA5R);
 
-        if tmpflag > 0  % TDT hardware has been successfully terminated
-            % copy status infomation
-            handles.indev.status = tmphandles.indev.status;
-            handles.outdev.status = tmphandles.outdev.status;
-            handles.zBUS.status = tmphandles.zBUS.status;
-				if ~isempty(tmphandles.PA5L)
-	            handles.PA5L.status = tmphandles.PA5L.status;
-				end
-				if ~isempty(tmphandles.PA5R)
-	            handles.PA5R.status = tmphandles.PA5R.status;
-				end
-            % update UI
-            set(hObject, 'ForegroundColor', ENABLECOLOR);
-            update_ui_str(hObject, 'TDT Enable')
-            enable_ui(handles.popupTDT);
-            disable_ui(handles.buttonSearch);
-            disable_ui(handles.buttonCurve);
-            disable_ui(handles.buttonClick);
-        else % tmpflag <= 0  % faied to stop TDT
-            % show error message
-            str = 'Failed to stop TDT';
-            set(handles.textMessage, 'String', str);
-            errordlg(str, 'TDT termination error');
-            % update UI
-            set(hObject, 'ForegroundColor', DISABLECOLOR);
-            update_ui_str(hObject, 'TDT Disable')
-        end
+		if tmpflag > 0  % TDT hardware has been successfully terminated
+			% copy status infomation
+			handles.indev.status = tmphandles.indev.status;
+			handles.outdev.status = tmphandles.outdev.status;
+			handles.zBUS.status = tmphandles.zBUS.status;
+			if ~isempty(tmphandles.PA5L)
+				handles.PA5L.status = tmphandles.PA5L.status;
+			end
+			if ~isempty(tmphandles.PA5R)
+				handles.PA5R.status = tmphandles.PA5R.status;
+			end
+			% update UI
+			set(hObject, 'ForegroundColor', ENABLECOLOR);
+			update_ui_str(hObject, 'TDT Enable')
+			enable_ui(handles.popupTDT);
+			disable_ui(handles.buttonSearch);
+			disable_ui(handles.buttonCurve);
+			disable_ui(handles.buttonClick);
+		else % tmpflag <= 0  % faied to stop TDT
+			% show error message
+			str = 'Failed to stop TDT';
+			set(handles.textMessage, 'String', str);
+			errordlg(str, 'TDT termination error');
+			% update UI
+			set(hObject, 'ForegroundColor', DISABLECOLOR);
+			update_ui_str(hObject, 'TDT Disable')
+		end
 
-    end % end of "if buttonState"
-    % save handles structure
-    guidata(hObject, handles);
+	end % end of "if buttonState"
+	% save handles structure
+	guidata(hObject, handles);
 %--------------------------------------------------------------------------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SEARCH button callback 
@@ -2594,3 +2593,10 @@ function popupMonChan_CreateFcn(hObject, eventdata, handles)
 		 set(hObject,'BackgroundColor','white');
 	end
 %--------------------------------------------------------------------------
+
+
+%--------------------------------------------------------------------------
+function buttonDEBUG_Callback(hObject, eventdata, handles)
+	keyboard
+%--------------------------------------------------------------------------
+	

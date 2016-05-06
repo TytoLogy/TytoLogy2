@@ -184,8 +184,8 @@ switch upper(stype)
 		out.InputChannel4 = 4;
 		return; 
 
-	% 'CHANNELS:RZ6_RZ5D' is for TDT RZ6 for audio out, RZ5D for spike in
-	case 'CHANNELS:RZ6_RZ5D' 
+	% 'CHANNELS:RZ6OUT200K_RZ5DIN' is for TDT RZ6 for audio out, RZ5D for spike in
+	case 'CHANNELS:RZ6OUT200K_RZ5DIN' 
 		out.OutputChannelL = 1;
 		out.OutputChannelR = 2;
 		out.InputChannel1 = 1;
