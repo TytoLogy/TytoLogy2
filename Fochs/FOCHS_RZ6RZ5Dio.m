@@ -56,7 +56,7 @@ RPsettag(outdev, 'StimDur', outpts);
 % Play sound
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % load output buffer
-out_msg = RPwriteV(outdev, 'data_outL', stim(1, :)) %#ok<NASGU>
+out_msg = RPwriteV(outdev, 'data_outL', stim(1, :)); %#ok<NASGU>
 out_msg = RPwriteV(outdev, 'data_outR', stim(2, :));
 % send START command (zBUS A)
 zBUStrigA_PULSE(zBUS, 0, 4);

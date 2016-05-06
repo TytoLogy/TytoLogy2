@@ -53,7 +53,7 @@ animal.comments = '';
 
 % stimulus = FOCHS_init('STIMULUS:PARAMS');
 stimulus.ISI = 500;
-stimulus.Duration = 100;
+stimulus.Duration = 200;
 stimulus.Delay = 100;
 stimulus.Ramp = 5;
 stimulus.RadVary = 0;
@@ -78,8 +78,8 @@ channels.MonitorOutputChannel = 9;
 % -- parameters for optical stimulus
 % optical = FOCHS_init('OPTICAL');
 optical.Enable = 1;
-optical.Amp = 1;
-optical.Dur = 50;
+optical.Amp = 1000;
+optical.Dur = 100;
 optical.Delay = 100;
 optical.Channel = 10;	% note that this is also set in RZ6+RZ5D
 
@@ -87,7 +87,8 @@ optical.Channel = 10;	% note that this is also set in RZ6+RZ5D
 try
 	[outhandles, outflag] = FOCHS_TDTopen(config); %#ok<ASGLU>
 catch ME
-	fprintf('FOCHS_TDTopen returned outflag: %s\n', outflag);
+	disp(ME.identifier)
+	disp(ME.message)
 	error('Cannot open TDT hardware');
 end
 indev = outhandles.indev;
@@ -106,37 +107,46 @@ Fs = FOCHS_RZ6RZ5Dsettings(indev, outdev, tdt, stimulus, channels, optical);
 
 %% do stuff
 
-% generate [2XN] stimulus array. row 1 == output A on RZ6, row 2 = output B
-stim = synmonosine(stimulus.Duration, outdev.Fs, tone.frequency, tone.amplitude, 0);
-stim = sin2array(stim, 1, outdev.Fs);
-nullstim = syn_null(stimulus.Duration, outdev.Fs, 0);
-S = [stim; nullstim];
+freqs = [220 440 880 1760];
+nreps = 5;
 
-% calculate # of points to acquire (in units of samples)
-inpts = ms2bin(tdt.AcqDuration, indev.Fs);
+for f = 1:length(freqs)
 
-% Set attenuation levels
-RPsettag(outdev, 'AttenL', 0);
-RPsettag(outdev, 'AttenR', 120);
-% make sure mute is off
-RPsettag(outdev, 'Mute', 0);
+	% generate [2XN] stimulus array. row 1 == output A on RZ6, row 2 = output B
+	stim = synmonosine(stimulus.Duration, outdev.Fs, freqs(f), tone.amplitude, 0);
+	stim = sin2array(stim, 1, outdev.Fs);
+	nullstim = syn_null(stimulus.Duration, outdev.Fs, 0);
+	S = [stim; nullstim];
 
-% play stimulus, return read values
-if indev.status && outdev.status && zBUS.status
-	[resp1, npts1, resp2, npts2, resp3, npts3, resp4, npts4, out_msg] = ...
-				FOCHS_RZ6RZ5Dio(S, inpts, indev, outdev, zBUS);
-else
-	error('stati == 0');
+	% calculate # of points to acquire (in units of samples)
+	inpts = ms2bin(tdt.AcqDuration, indev.Fs);
+
+	% Set attenuation levels
+	RPsettag(outdev, 'AttenL', 0);
+	RPsettag(outdev, 'AttenR', 120);
+	% make sure mute is off
+	RPsettag(outdev, 'Mute', 0);
+
+	for n = 1:nreps
+		% play stimulus, return read values
+		if indev.status && outdev.status && zBUS.status
+			[resp1, npts1, resp2, npts2, resp3, npts3, resp4, npts4, out_msg] = ...
+						FOCHS_RZ6RZ5Dio(S, inpts, indev, outdev, zBUS);
+		else
+			error('stati == 0');
+		end
+
+		% plot returned values
+		figure(5)
+		subplot(411), plot(resp1);
+		subplot(412), plot(resp2);
+		subplot(413), plot(resp3);
+		subplot(414), plot(resp4);
+		drawnow
+
+		pause(0.001*stimulus.ISI)
+	end
 end
-
-% plot returned values
-figure(5)
-subplot(411), plot(resp1);
-subplot(412), plot(resp2);
-subplot(413), plot(resp3);
-subplot(414), plot(resp4);
-
-
 %% stop TDT hardware
 [outhandles, outflag] = FOCHS_TDTclose(config, indev, outdev, zBUS, PA5L, PA5R);
 indev = outhandles.indev;
